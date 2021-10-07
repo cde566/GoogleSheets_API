@@ -1,0 +1,32 @@
+# get client sheet
+## Method 2
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+scope = ['https://spreadsheets.google.com/feeds',
+         'https://www.googleapis.com/auth/drive']
+creds = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
+client = gspread.authorize(creds)
+sheet = client.open('trans2').worksheet('sheet2')
+
+# translate
+sheet.insert_row(["english", "chinese(zh-cn)", "chinese(zh-tw)"], 1)
+sheet.insert_row(["hello"], 2)
+sheet.insert_row(["world!"], 3)
+sheet.insert_row(["coding"], 4)
+
+for insert_idx in range(2,5):
+    sheet.update(f"B{insert_idx}", f'=GOOGLETRANSLATE(A{insert_idx}, "en", "zh-cn")', raw=False)
+    sheet.update(f"C{insert_idx}", f'=GOOGLETRANSLATE(A{insert_idx}, "en", "zh-tw")', raw=False)
+
+# calculate
+sheet.insert_row(["numbers", "countif>10"], 1)
+sheet.insert_row([10], 2)
+sheet.insert_row([20], 3)
+sheet.insert_row([30], 4)
+sheet.update(f"B2", f'=COUNTIFS(A2:A4,">10")', raw=False)
+
+# read & save to csv
+import pandas as pd
+data = sheet.get_all_values()
+df = pd.DataFrame(data)
+df.to_csv("sheets.csv", index=False, header=False)
